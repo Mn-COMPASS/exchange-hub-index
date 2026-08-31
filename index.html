@@ -238,7 +238,6 @@
       <div><label for="f-role">Role</label><select id="f-role" data-field="role"></select></div>
       <div><label for="f-use">Use</label><select id="f-use" data-field="use"></select></div>
       <div><label for="f-access">Access</label><select id="f-access" data-field="access"></select></div>
-      <div><label for="f-identities">Identities</label><select id="f-identities" data-field="identities"></select></div>
     </div>
 
     <div class="toggle-row">
@@ -284,13 +283,16 @@
      so, rather than showing an empty index.
    ================================================================== */
 
-var SHEET_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQdjOt_QHgd6dLTmuC0-r4jlJHrxhYccqq2QGSWlVEP6dJmE3MN-FvZZwt8OeCPrhmIpS9kDSHtk66F/pub?gid=381270354&single=true&output=csv';
+var SHEET_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQdjOt_QHgd6dLTmuC0-r4jlJHrxhYccqq2QGSWlVEP6dJmE3MN-FvZZwt8OeCPrhmIpS9kDSHtk66F/pubhtml?gid=381270354&single=true';
 var LOCAL_FILE = 'resources.csv';
 
-var FILTER_FIELDS = ['topic', 'format', 'time', 'role', 'use', 'access', 'identities'];
+var FILTER_FIELDS = ['topic', 'format', 'time', 'role', 'use', 'access'];
 
-/* Fields whose cell may hold several values separated by a pipe. */
-var MULTI_FIELDS = { identities: true };
+/* Fields whose cell may hold several values separated by a pipe.
+   To bring a multi-value column back, add its field name here, add a
+   matching <select> above, and add the field to FILTER_FIELDS.
+   For example: var MULTI_FIELDS = { identities: true }; */
+var MULTI_FIELDS = {};
 
 function splitValues(v) {
   return String(v || '').split('|').map(function (s) { return s.trim(); }).filter(Boolean);
@@ -385,7 +387,7 @@ function matches(r, q, filters, equityOnly) {
   }
   if (q) {
     var hay = [r.title, r.source, r.summary, r.topic, r.also_relevant, r.also_relevant_2,
-               r.format, r.identities, r.added_by].join(' ').toLowerCase();
+               r.format, r.added_by].join(' ').toLowerCase();
     if (hay.indexOf(q) === -1) return false;
   }
   return true;
@@ -444,12 +446,9 @@ function card(r) {
   if (r.topic) pills.appendChild(pill(r.topic, 'pill-topic'));
   if (r.format) pills.appendChild(pill(r.format));
   if (r.time) pills.appendChild(pill(r.time));
-  if (r.use) pills.appendChild(pill('For ' + r.use.toLowerCase()));
+  if (r.use) pills.appendChild(pill('For ' + r.use.charAt(0).toLowerCase() + r.use.slice(1)));
   if (r.role && r.role.toLowerCase() !== 'any') pills.appendChild(pill(r.role));
   if (r.access && r.access.toLowerCase() !== 'free') pills.appendChild(pill(r.access));
-  splitValues(r.identities).forEach(function (v) {
-    if (v.toLowerCase() !== 'not applicable') pills.appendChild(pill(v, 'pill-topic'));
-  });
   if (isEquity(r)) pills.appendChild(pill('Equity lens', 'pill-equity'));
   if (pills.childNodes.length) art.appendChild(pills);
 
@@ -527,11 +526,42 @@ function notice(cls, lines) {
   document.getElementById('state').appendChild(box);
 }
 
+/* Warn when a header cell is blank or a core column is missing. A blank
+   header silently hides a whole column, which is very hard to spot. */
+var EXPECTED = ['title','source','link','format','time','topic','summary',
+                'equity_lens','role','use','access','added_by'];
+
+function checkHeaders(rows) {
+  if (!rows.length) return;
+  var headers = rows[0].map(function (h) {
+    return h.trim().toLowerCase().replace(/\s+/g, '_');
+  });
+  var blanks = headers.filter(function (h) { return h === ''; }).length;
+  var missing = EXPECTED.filter(function (e) { return headers.indexOf(e) === -1; });
+  if (!blanks && !missing.length) return;
+  var lines = [];
+  if (blanks) {
+    lines.push(['A header cell is empty. ',
+      blanks + ' column' + (blanks > 1 ? 's have' : ' has') +
+      ' no name in row 1 of the spreadsheet, so everything in ' +
+      (blanks > 1 ? 'those columns is' : 'that column is') + ' being ignored here.']);
+  }
+  if (missing.length) {
+    lines.push(['Columns this page expected but did not find: ',
+      missing.join(', ') + '.']);
+  }
+  lines.push(['To fix: ',
+    'type the column name back into row 1 of the spreadsheet, spelled exactly as listed above but with spaces instead of underscores. Nothing else needs changing.']);
+  notice('', lines);
+}
+
 function start(text, usedFallback, why) {
-  records = toRecords(parseCSV(text));
+  var rows = parseCSV(text);
+  records = toRecords(rows);
   fillSelects();
   wire();
   render();
+  checkHeaders(rows);
   if (usedFallback) {
     notice('', [
       ['Reading the backup copy. ',
