@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Exchange Hub Resource Index</title>
+<style>
+  :root {
+    --mn-blue: #003865;
+    --mn-green: #78BE21;
+    --green-text: #0D5257;
+    --dark-gray: #53565A;
+    --med-gray: #97999B;
+    --light-gray: #D9D9D6;
+    --blue-tint: #E6EBF0;
+    --blue-tint-border: #CCD7E0;
+    --green-tint: #F1F8E7;
+    --gray-tint: #F7F7F6;
+    --white: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--white);
+    color: var(--dark-gray);
+    font-family: 'Brandon Text', 'Brandon Grotesque', Calibri, 'Segoe UI', Lato, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 56px; }
+
+  /* ---------- header ---------- */
+
+  .eyebrow {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--mn-blue);
+    margin: 0 0 12px;
+  }
+  .rule { width: 72px; height: 3px; background: var(--mn-green); border: 0; margin: 0 0 20px; }
+
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.3;
+    color: var(--mn-blue);
+    margin: 0 0 10px;
+  }
+  .intro { font-size: 17px; line-height: 1.7; margin: 0 0 28px; max-width: 62ch; }
+
+  /* ---------- controls ---------- */
+
+  .controls {
+    background: var(--gray-tint);
+    border: 1px solid var(--light-gray);
+    border-top: 5px solid var(--mn-blue);
+    padding: 20px 22px 22px;
+    margin: 0 0 8px;
+  }
+
+  .search-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--mn-blue);
+    margin: 0 0 6px;
+  }
+
+  input[type="search"], select {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--dark-gray);
+    background: var(--white);
+    border: 1px solid var(--med-gray);
+    border-radius: 4px;
+    padding: 9px 12px;
+    width: 100%;
+  }
+  input[type="search"] { font-size: 17px; }
+
+  .search-field { flex: 1 1 320px; }
+  .sort-field { flex: 0 1 200px; }
+
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 18px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--light-gray);
+  }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .check input { width: 18px; height: 18px; accent-color: var(--mn-blue); margin: 0; }
+  .check label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--dark-gray); }
+
+  button {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 9px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn-clear {
+    background: var(--white);
+    border: 1px solid var(--mn-blue);
+    color: var(--mn-blue);
+  }
+  .btn-clear:hover { background: var(--blue-tint); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid var(--mn-blue);
+    outline-offset: 2px;
+  }
+
+  /* ---------- count ---------- */
+
+  .count {
+    font-size: 15px;
+    color: var(--dark-gray);
+    padding: 16px 2px 6px;
+    border-bottom: 1px solid var(--blue-tint-border);
+    margin: 0 0 4px;
+  }
+  .count strong { color: var(--mn-blue); }
+
+  /* ---------- results ---------- */
+
+  ul.results { list-style: none; margin: 0; padding: 0; }
+  ul.results > li { margin: 0; }
+
+  .card {
+    background: var(--white);
+    border-bottom: 1px solid var(--blue-tint-border);
+    padding: 20px 2px 22px;
+  }
+  .card h2 {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.35;
+    color: var(--mn-blue);
+    margin: 0 0 4px;
+  }
+  .card h2 a { color: var(--mn-blue); text-decoration: none; border-bottom: 2px solid var(--blue-tint-border); }
+  .card h2 a:hover { border-bottom-color: var(--mn-green); }
+  .source { font-size: 14px; color: var(--dark-gray); margin: 0 0 10px; }
+  .summary { font-size: 15px; line-height: 1.6; margin: 0 0 12px; max-width: 68ch; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+  .pill {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 20px;
+    padding: 4px 14px;
+    background: var(--blue-tint);
+    border: 1px solid var(--blue-tint-border);
+    color: var(--dark-gray);
+    white-space: nowrap;
+  }
+  .pill-equity { background: var(--green-tint); border-color: var(--mn-green); color: var(--green-text); }
+  .pill-topic { background: var(--white); border-color: var(--med-gray); }
+
+  /* ---------- states ---------- */
+
+  .state {
+    background: var(--gray-tint);
+    border-left: 6px solid var(--med-gray);
+    padding: 22px 26px 22px 24px;
+    margin: 24px 0 0;
+  }
+  .state.error { border-left-color: var(--mn-blue); background: var(--blue-tint); }
+  .state p { margin: 0 0 8px; font-size: 16px; }
+  .state p:last-child { margin: 0; }
+  .state strong { color: var(--mn-blue); }
+
+  .footnote {
+    margin: 40px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--light-gray);
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="eyebrow">The Exchange Hub</p>
+  <hr class="rule">
+  <h1>Resource index</h1>
+  <p class="intro">Every resource in the hub, in one place. Search by words in the title or summary, or narrow the list with the filters below. Filters combine, so you can ask for a podcast under thirty minutes about family engagement that suits a staff meeting.</p>
+
+  <div class="controls">
+    <div class="search-row">
+      <div class="search-field">
+        <label for="q">Search</label>
+        <input type="search" id="q" placeholder="Title, source, or summary" autocomplete="off">
+      </div>
+      <div class="sort-field">
+        <label for="sort">Sort by</label>
+        <select id="sort">
+          <option value="added">Recently added</option>
+          <option value="title">Title A to Z</option>
+          <option value="year">Newest published</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div><label for="f-topic">Topic</label><select id="f-topic" data-field="topic"></select></div>
+      <div><label for="f-format">Format</label><select id="f-format" data-field="format"></select></div>
+      <div><label for="f-time">Time</label><select id="f-time" data-field="time"></select></div>
+      <div><label for="f-role">Role</label><select id="f-role" data-field="role"></select></div>
+      <div><label for="f-use">Use</label><select id="f-use" data-field="use"></select></div>
+      <div><label for="f-access">Access</label><select id="f-access" data-field="access"></select></div>
+      <div><label for="f-identities">Identities</label><select id="f-identities" data-field="identities"></select></div>
+    </div>
+
+    <div class="toggle-row">
+      <span class="check">
+        <input type="checkbox" id="f-equity">
+        <label for="f-equity">Equity lens only</label>
+      </span>
+      <button type="button" class="btn-clear" id="clear">Clear all filters</button>
+    </div>
+  </div>
+
+  <p class="count" id="count" role="status" aria-live="polite">Loading resources.</p>
+
+  <ul class="results" id="results"></ul>
+
+  <div id="state"></div>
+
+  <p class="footnote">Records come from the hub resource spreadsheet. To add a resource, use the Share a Resource lane in the Exchange, or add a row to the spreadsheet directly if you are on the hub team.</p>
+
+</div>
+
+<script>
+/* ==================================================================
+   CONFIGURATION. This is the only part you edit.
+   ==================================================================
+
+   SHEET_URL
+     Paste the address of your published Google Sheet CSV here, between
+     the quotes. Leave it empty to read the resources.csv file sitting
+     next to this page in the repository instead.
+
+     To get the address: in Google Sheets, File, Share, Publish to web,
+     pick the Library tab (NOT Entire document), pick Comma-separated
+     values, then Publish, then copy the address.
+
+     If that address is refused by the browser, try this shape instead,
+     which needs the sheet shared as "anyone with the link can view":
+     https://docs.google.com/spreadsheets/d/SHEET_ID/gviz/tq?tqx=out:csv&sheet=TAB_NAME
+
+   LOCAL_FILE
+     Always leave this as 'resources.csv'. It is the safety net. If the
+     sheet cannot be reached, the page loads this file instead and says
+     so, rather than showing an empty index.
+   ================================================================== */
+
+var SHEET_URL  = '';
+var LOCAL_FILE = 'resources.csv';
+
+var FILTER_FIELDS = ['topic', 'format', 'time', 'role', 'use', 'access', 'identities'];
+
+/* Fields whose cell may hold several values separated by a pipe. */
+var MULTI_FIELDS = { identities: true };
+
+function splitValues(v) {
+  return String(v || '').split('|').map(function (s) { return s.trim(); }).filter(Boolean);
+}
+var records = [];
+
+/* ---------- CSV parsing, quote and newline safe ---------- */
+
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  var rows = [], row = [], field = '', inQuotes = false, i = 0;
+  while (i < text.length) {
+    var c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQuotes = true; i++; continue; }
+    if (c === ',') { row.push(field); field = ''; i++; continue; }
+    if (c === '\r') { i++; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+    field += c; i++;
+  }
+  row.push(field);
+  rows.push(row);
+  return rows.filter(function (r) { return r.some(function (v) { return v.trim() !== ''; }); });
+}
+
+function toRecords(rows) {
+  if (!rows.length) return [];
+  var headers = rows[0].map(function (h) { return h.trim().toLowerCase().replace(/\s+/g, '_'); });
+  return rows.slice(1).map(function (r) {
+    var o = {};
+    headers.forEach(function (h, idx) { o[h] = (r[idx] || '').trim(); });
+    return o;
+  }).filter(function (o) { return o.title; });
+}
+
+/* ---------- build filter menus from the data itself ---------- */
+
+function fillSelects() {
+  FILTER_FIELDS.forEach(function (field) {
+    var sel = document.querySelector('[data-field="' + field + '"]');
+    var seen = {};
+    records.forEach(function (r) {
+      if (MULTI_FIELDS[field]) {
+        splitValues(r[field]).forEach(function (v) { seen[v] = true; });
+      } else if (r[field]) {
+        seen[r[field]] = true;
+      }
+    });
+    var values = Object.keys(seen).sort(function (a, b) { return a.localeCompare(b); });
+    sel.innerHTML = '';
+    var all = document.createElement('option');
+    all.value = '';
+    all.textContent = 'All';
+    sel.appendChild(all);
+    values.forEach(function (v) {
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+/* ---------- filtering ---------- */
+
+function isEquity(r) {
+  return /^(y|yes|true|1)$/i.test(r.equity_lens || '');
+}
+
+function matches(r, q, filters, equityOnly) {
+  if (equityOnly && !isEquity(r)) return false;
+  for (var f in filters) {
+    if (!filters[f]) continue;
+    if (MULTI_FIELDS[f]) {
+      var picked = filters[f].toLowerCase();
+      if (splitValues(r[f]).some(function (v) { return v.toLowerCase() === picked; })) continue;
+      return false;
+    }
+    var primary = (r[f] || '').toLowerCase();
+    if (primary === filters[f].toLowerCase()) continue;
+    if (f === 'topic') {
+      var also = [r.also_relevant, r.also_relevant_2].filter(Boolean).join('|').toLowerCase();
+      if (also.split(/[;|]/).some(function (t) { return t.trim() === filters[f].toLowerCase(); })) continue;
+    }
+    return false;
+  }
+  if (q) {
+    var hay = [r.title, r.source, r.summary, r.topic, r.also_relevant, r.also_relevant_2,
+               r.format, r.identities, r.added_by].join(' ').toLowerCase();
+    if (hay.indexOf(q) === -1) return false;
+  }
+  return true;
+}
+
+function sortRecords(list, mode) {
+  var out = list.slice();
+  if (mode === 'title') {
+    out.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
+  } else if (mode === 'year') {
+    out.sort(function (a, b) { return (parseInt(b.year, 10) || 0) - (parseInt(a.year, 10) || 0); });
+  } else {
+    out.sort(function (a, b) {
+      return String(b.added_date || '').localeCompare(String(a.added_date || ''));
+    });
+  }
+  return out;
+}
+
+/* ---------- rendering ---------- */
+
+function el(tag, cls, text) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function pill(text, cls) {
+  var li = el('li');
+  li.appendChild(el('span', 'pill' + (cls ? ' ' + cls : ''), text));
+  return li;
+}
+
+function card(r) {
+  var li = el('li');
+  var art = el('article', 'card');
+
+  var h = el('h2');
+  if (r.link) {
+    var a = el('a', null, r.title);
+    a.href = r.link;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    h.appendChild(a);
+  } else {
+    h.textContent = r.title;
+  }
+  art.appendChild(h);
+
+  var meta = [r.source, r.year].filter(Boolean).join(', ');
+  if (meta) art.appendChild(el('p', 'source', meta));
+  if (r.summary) art.appendChild(el('p', 'summary', r.summary));
+
+  var pills = el('ul', 'pills');
+  if (r.topic) pills.appendChild(pill(r.topic, 'pill-topic'));
+  if (r.format) pills.appendChild(pill(r.format));
+  if (r.time) pills.appendChild(pill(r.time));
+  if (r.use) pills.appendChild(pill('For ' + r.use.toLowerCase()));
+  if (r.role && r.role.toLowerCase() !== 'any') pills.appendChild(pill(r.role));
+  if (r.access && r.access.toLowerCase() !== 'free') pills.appendChild(pill(r.access));
+  splitValues(r.identities).forEach(function (v) {
+    if (v.toLowerCase() !== 'not applicable') pills.appendChild(pill(v, 'pill-topic'));
+  });
+  if (isEquity(r)) pills.appendChild(pill('Equity lens', 'pill-equity'));
+  if (pills.childNodes.length) art.appendChild(pills);
+
+  li.appendChild(art);
+  return li;
+}
+
+function render() {
+  var q = document.getElementById('q').value.trim().toLowerCase();
+  var equityOnly = document.getElementById('f-equity').checked;
+  var filters = {};
+  FILTER_FIELDS.forEach(function (f) {
+    filters[f] = document.querySelector('[data-field="' + f + '"]').value;
+  });
+
+  var list = records.filter(function (r) { return matches(r, q, filters, equityOnly); });
+  list = sortRecords(list, document.getElementById('sort').value);
+
+  var results = document.getElementById('results');
+  results.innerHTML = '';
+  list.forEach(function (r) { results.appendChild(card(r)); });
+
+  var count = document.getElementById('count');
+  var total = records.length;
+  if (!total) {
+    count.textContent = 'No resources loaded.';
+  } else if (list.length === total) {
+    count.innerHTML = 'Showing all <strong>' + total + '</strong> resources.';
+  } else {
+    count.innerHTML = 'Showing <strong>' + list.length + '</strong> of ' + total + ' resources.';
+  }
+
+  var state = document.getElementById('state');
+  state.innerHTML = '';
+  if (total && !list.length) {
+    var box = el('div', 'state');
+    box.appendChild(el('p', null, 'Nothing matches that combination yet.'));
+    var p = el('p');
+    p.appendChild(el('strong', null, 'Try this: '));
+    p.appendChild(document.createTextNode('clear one filter, or post the request in the Exchange. Requests are how the hub grows.'));
+    box.appendChild(p);
+    state.appendChild(box);
+  }
+}
+
+/* ---------- wiring ---------- */
+
+function wire() {
+  document.getElementById('q').addEventListener('input', render);
+  document.getElementById('sort').addEventListener('change', render);
+  document.getElementById('f-equity').addEventListener('change', render);
+  FILTER_FIELDS.forEach(function (f) {
+    document.querySelector('[data-field="' + f + '"]').addEventListener('change', render);
+  });
+  document.getElementById('clear').addEventListener('click', function () {
+    document.getElementById('q').value = '';
+    document.getElementById('f-equity').checked = false;
+    document.getElementById('sort').value = 'added';
+    FILTER_FIELDS.forEach(function (f) {
+      document.querySelector('[data-field="' + f + '"]').value = '';
+    });
+    render();
+    document.getElementById('q').focus();
+  });
+}
+
+function notice(cls, lines) {
+  var box = el('div', 'state' + (cls ? ' ' + cls : ''));
+  lines.forEach(function (pair) {
+    var p = el('p');
+    if (pair[0]) p.appendChild(el('strong', null, pair[0]));
+    p.appendChild(document.createTextNode(pair[1]));
+    box.appendChild(p);
+  });
+  document.getElementById('state').appendChild(box);
+}
+
+function start(text, usedFallback, why) {
+  records = toRecords(parseCSV(text));
+  fillSelects();
+  wire();
+  render();
+  if (usedFallback) {
+    notice('', [
+      ['Reading the backup copy. ',
+       'The live spreadsheet could not be reached, so this page is showing the resources.csv file stored with it. Everything works, but recent edits to the sheet will not appear.'],
+      ['What to check: ',
+       'the sheet is still published to the web, and the address in SHEET_URL is the comma-separated values one. Reason given: ' + why]
+    ]);
+  }
+}
+
+function loadLocal(why) {
+  fetch(LOCAL_FILE, { cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      return res.text();
+    })
+    .then(function (text) { start(text, !!why, why); })
+    .catch(function (err) {
+      document.getElementById('count').textContent = 'The resource list could not be loaded.';
+      notice('error', [
+        ['Nothing loaded. ',
+         'This page needs either a published Google Sheet address in SHEET_URL, or a file named resources.csv sitting beside it in the repository.'],
+        ['Details: ', (why ? why + ' | ' : '') + err.message]
+      ]);
+    });
+}
+
+if (SHEET_URL) {
+  fetch(SHEET_URL, { cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      return res.text();
+    })
+    .then(function (text) {
+      if (text.indexOf('<!DOCTYPE') === 0 || text.indexOf('<html') === 0) {
+        throw new Error('That address returned a web page rather than CSV');
+      }
+      start(text, false, '');
+    })
+    .catch(function (err) { loadLocal(err.message); });
+} else {
+  loadLocal('');
+}
+</script>
+
+</body>
+</html>
